@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JanAwaz - voice civic complaints (prototype demo)</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1 id="app-title">JanAwaz</h1>
+  <p class="tagline" id="tagline"></p>
+  <div class="demo-banner" id="demo-banner"></div>
+  <p class="privacy-note" id="privacy-note"></p>
+  <label class="lang-label" for="lang" id="lang-label"></label>
+  <select id="lang">
+    <option value="hi">हिंदी</option>
+    <option value="mr">मराठी</option>
+    <option value="en">English</option>
+  </select>
+</header>
+
+<main>
+  <p id="status-line" class="status-line" role="status"></p>
+
+  <button id="mic-btn" class="mic-btn" type="button" aria-label="speak">
+    <svg id="mic-icon" viewBox="0 0 24 24" width="56" height="56" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#0b3d91"/>
+      <path d="M5 11a7 7 0 0 0 14 0" fill="none" stroke="#0b3d91" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="18" x2="12" y2="22" stroke="#0b3d91" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="22" x2="16" y2="22" stroke="#0b3d91" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <p id="heard" class="heard"></p>
+
+  <div class="row">
+    <button id="type-toggle" class="secondary" type="button"></button>
+    <button id="status-btn" class="secondary" type="button"></button>
+  </div>
+
+  <form id="typed-form" class="hidden" autocomplete="off">
+    <label id="typed-label" for="typed-input"></label>
+    <input id="typed-input" type="text">
+    <button id="typed-send" type="submit"></button>
+  </form>
+
+  <section id="confirm-panel" class="hidden">
+    <h2 id="confirm-heading"></h2>
+    <dl id="summary"></dl>
+    <div class="row">
+      <button id="confirm-yes" class="confirm" type="button"></button>
+      <button id="confirm-no" class="secondary" type="button"></button>
+    </div>
+  </section>
+
+  <section id="result-panel" class="hidden">
+    <h2 id="result-heading"></h2>
+    <p id="result-ref" class="ref"></p>
+    <p id="result-note" class="demo-note"></p>
+  </section>
+
+  <section id="track-panel" class="hidden">
+    <h2 id="track-heading"></h2>
+    <p id="track-status"></p>
+  </section>
+</main>
+
+<footer>
+  <p id="footer-note"></p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
