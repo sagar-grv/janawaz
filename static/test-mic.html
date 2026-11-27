@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JanAwaz mic self-test</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px 16px; font-size: 20px; line-height: 1.5; }
+h1 { font-size: 1.4rem; }
+button { font-size: 1.2rem; padding: 14px 28px; border-radius: 8px; border: none; background: #0b3d91; color: #fff; cursor: pointer; }
+#out { margin-top: 20px; padding: 14px; border: 2px solid #333; border-radius: 8px; min-height: 3em; white-space: pre-wrap; }
+.ok { color: #1a7a3c; font-weight: 700; }
+.bad { color: #b00020; font-weight: 700; }
+small { color: #555; }
+</style>
+</head>
+<body>
+<h1>JanAwaz mic self-test (prototype demo)</h1>
+<p>Press the button and say in Hindi: <b>"Hamare mohalle mein teen din se paani nahi aa raha."</b></p>
+<button id="go">Start mic test</button>
+<div id="out">Result will appear here.</div>
+<p><small>This page tests only whether this browser can recognize Hindi speech. It sends audio to the browser's own speech service and saves nothing. Needs HTTPS or localhost, and Chrome or Edge. Recognition depends on the browser, its speech service and mic permission: in our tests, Chrome 157 on a Linux build refused with a permission/service error, while browsers on Android phones and on desktop Windows or Mac generally ship a speech service. Any failure here means the main app uses its typed fallback by design, not that the product fails.</small></p>
+<script>
+const out = document.getElementById("out");
+document.getElementById("go").addEventListener("click", () => {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Rec) {
+    out.innerHTML = '<span class="bad">NOT SUPPORTED: this browser has no SpeechRecognition. The main app will use its typed fallback.</span>';
+    return;
+  }
+  const rec = new Rec();
+  rec.lang = "hi-IN";
+  rec.interimResults = false;
+  out.textContent = "Listening...";
+  rec.onresult = e => {
+    out.innerHTML = '<span class="ok">HEARD:</span> ' + e.results[0][0].transcript +
+      "\n\nRecognition works on this device.";
+  };
+  rec.onerror = e => {
+    const why = e.error === "not-allowed"
+      ? "permission or speech service refused (not-allowed)"
+      : e.error === "service-not-allowed"
+      ? "this browser has no usable speech service (service-not-allowed)"
+      : e.error === "audio-capture"
+      ? "no microphone could be captured (audio-capture)"
+      : e.error === "network"
+      ? "the speech service could not be reached (network)"
+      : e.error;
+    out.innerHTML = '<span class="bad">ERROR: ' + why + "</span>" +
+      "\nRecognition did not run in this browser. The main app will use its typed fallback.";
+  };
+  rec.onend = () => { if (out.textContent === "Listening...") out.textContent = "Stopped with no result."; };
+  try { rec.start(); } catch (e) { out.textContent = "Start failed: " + e.message; }
+});
+</script>
+</body>
+</html>
