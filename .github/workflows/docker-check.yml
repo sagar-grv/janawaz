@@ -1,0 +1,67 @@
+name: docker-up-check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  compose-up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Start the project exactly as the brief requires
+        # Same command the organizers will run. On a fresh runner the image
+        # does not exist, so plain `up` builds it first - no additional steps.
+        # -d only gives CI its shell back; it changes nothing about the build.
+        run: docker compose up -d
+
+      - name: Verify the app is serving with no additional steps
+        run: |
+          set -euo pipefail
+          echo "Waiting for the app to come up..."
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/api/health; then
+              echo
+              break
+            fi
+            if [ "$i" = 30 ]; then
+              echo "app never became healthy"
+              docker compose logs
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo "Static UI:"
+          for p in / /test-mic.html /app.js /style.css; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8000$p")
+            echo "  GET $p -> $code"
+            [ "$code" = 200 ]
+          done
+
+          echo "File a complaint:"
+          resp=$(curl -fsS -X POST http://localhost:8000/api/complaints \
+            -H 'Content-Type: application/json' \
+            -d '{"language":"hi","category":"water","description":"Docker check test complaint","location":"CI runner","duration":"1 din"}')
+          echo "  $resp"
+          ref=$(printf '%s' "$resp" | grep -o 'DEMO-2026-[0-9]*' | head -1)
+          [ -n "$ref" ]
+
+          echo "Status lookup:"
+          curl -fsS "http://localhost:8000/api/complaints/$ref"
+
+          echo "Seed data present:"
+          curl -fsS http://localhost:8000/api/complaints/DEMO-2026-0001 | grep -q street_light
+
+          echo "No list endpoint (privacy guard):"
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/complaints)
+          [ "$code" = 404 ]
+
+          echo "ALL CHECKS PASSED"
+
+      - name: Tear down
+        if: always()
+        run: docker compose down
